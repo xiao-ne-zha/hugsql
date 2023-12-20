@@ -1,4 +1,4 @@
-(defproject com.layerware/hugsql-core "0.5.3"
+(defproject org.clojars.xiao-ne-zha/hugsql-core "1.0.0-SNAPSHOT"
   :description "HugSQL core functionality without adapter dependencies"
   :url "https://github.com/layerware/hugsql"
   :license {:name "Apache License, Version 2.0"
@@ -6,12 +6,12 @@
   :scm {:dir ".."}
   :dependencies [[org.clojure/clojure "1.8.0"]
                  [org.clojure/tools.reader "1.3.6"]
-                 [com.layerware/hugsql-adapter "0.5.3"]]
+                 [org.clojars.xiao-ne-zha/hugsql-adapter "1.0.0-SNAPSHOT"]]
   :profiles {:dev
              {:plugins [[lein-auto "0.1.2"]]
-              :dependencies [[com.layerware/hugsql-adapter-clojure-java-jdbc "0.5.3"]
-                             [com.layerware/hugsql-adapter-clojure-jdbc "0.5.3"]
-                             [com.layerware/hugsql-adapter-next-jdbc "0.5.3"]
+              :dependencies [[org.clojars.xiao-ne-zha/hugsql-adapter-clojure-java-jdbc "1.0.0-SNAPSHOT"]
+                             [org.clojars.xiao-ne-zha/hugsql-adapter-clojure-jdbc "1.0.0-SNAPSHOT"]
+                             [org.clojars.xiao-ne-zha/hugsql-adapter-next-jdbc "1.0.0-SNAPSHOT"]
                              [org.postgresql/postgresql "42.2.8"]
                              [mysql/mysql-connector-java "8.0.17"]
                              [org.xerial/sqlite-jdbc "3.28.0"]

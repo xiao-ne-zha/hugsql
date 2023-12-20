@@ -19,6 +19,9 @@
   (query [this db sqlvec options]
     (jdbc/execute! db sqlvec (or (:command-options options) default-command-options)))
 
+  (plan [this db sqlvec options]
+    (jdbc/plan db sqlvec (or (:command-options options) default-command-options)))
+
   (result-one [this result options]
     (first result))
 

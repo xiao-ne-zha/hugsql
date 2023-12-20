@@ -3,6 +3,9 @@
 (defprotocol HugsqlAdapter
   "Hugsql Adapter Protocol"
 
+  (plan [this db sqlvec options]
+    "Query SQL statement, return a IReduceInit object")
+
   (execute [this db sqlvec options]
     "Execute SQL/DDL/DML statement")
 
