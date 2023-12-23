@@ -22,12 +22,12 @@
            [{:next.jdbc/update-count 1}])))
   (testing ":insert command test"
     (is (= (insert-color-alt conn {:name "crimson" :r 220 :g 20 :b 60})
-           [{:COLORS/ID 3}])))
+           [{:id 3}])))
   (testing "Can insert and return affected rows"
     (is (= (update-color-affected conn {:r 100})
            3)))
   (testing "Can select a row."
-    (is (= (:COLORS/ID (select-color-by-id conn {:id 1}))
+    (is (= (:id (select-color-by-id conn {:id 1}))
            1)))
   (testing "Can select multiple rows."
     (is (= (count (select-all-colors conn))

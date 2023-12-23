@@ -234,25 +234,27 @@
       :raw))))
 
 (defmulti hugsql-command-fn identity)
-(defmethod hugsql-command-fn :! [_] 'hugsql.adapter/execute)
-(defmethod hugsql-command-fn :execute [_] 'hugsql.adapter/execute)
-(defmethod hugsql-command-fn :i! [_] 'hugsql.adapter/execute)
-(defmethod hugsql-command-fn :insert [_] 'hugsql.adapter/execute)
-(defmethod hugsql-command-fn :<! [_] 'hugsql.adapter/query)
-(defmethod hugsql-command-fn :returning-execute [_] 'hugsql.adapter/query)
-(defmethod hugsql-command-fn :? [_] 'hugsql.adapter/query)
-(defmethod hugsql-command-fn :query [_] 'hugsql.adapter/query)
-(defmethod hugsql-command-fn :default [_] 'hugsql.adapter/query)
+(defmethod hugsql-command-fn :! [_] hugsql.adapter/execute)
+(defmethod hugsql-command-fn :execute [_] hugsql.adapter/execute)
+(defmethod hugsql-command-fn :i! [_] hugsql.adapter/execute)
+(defmethod hugsql-command-fn :insert [_] hugsql.adapter/execute)
+(defmethod hugsql-command-fn :<! [_] hugsql.adapter/query)
+(defmethod hugsql-command-fn :returning-execute [_] hugsql.adapter/query)
+(defmethod hugsql-command-fn :? [_] hugsql.adapter/query)
+(defmethod hugsql-command-fn :query [_] hugsql.adapter/query)
+(defmethod hugsql-command-fn :default [_] hugsql.adapter/query)
+(defmethod hugsql-command-fn :plan [_] hugsql.adapter/plan)
+(defmethod hugsql-command-fn :~ [_] hugsql.adapter/plan)
 
 (defmulti hugsql-result-fn identity)
-(defmethod hugsql-result-fn :1 [_] 'hugsql.adapter/result-one)
-(defmethod hugsql-result-fn :one [_] 'hugsql.adapter/result-one)
-(defmethod hugsql-result-fn :* [_] 'hugsql.adapter/result-many)
-(defmethod hugsql-result-fn :many [_] 'hugsql.adapter/result-many)
-(defmethod hugsql-result-fn :n [_] 'hugsql.adapter/result-affected)
-(defmethod hugsql-result-fn :affected [_] 'hugsql.adapter/result-affected)
-(defmethod hugsql-result-fn :raw [_] 'hugsql.adapter/result-raw)
-(defmethod hugsql-result-fn :default [_] 'hugsql.adapter/result-raw)
+(defmethod hugsql-result-fn :1 [_] hugsql.adapter/result-one)
+(defmethod hugsql-result-fn :one [_] hugsql.adapter/result-one)
+(defmethod hugsql-result-fn :* [_] hugsql.adapter/result-many)
+(defmethod hugsql-result-fn :many [_] hugsql.adapter/result-many)
+(defmethod hugsql-result-fn :n [_] hugsql.adapter/result-affected)
+(defmethod hugsql-result-fn :affected [_] hugsql.adapter/result-affected)
+(defmethod hugsql-result-fn :raw [_] hugsql.adapter/result-raw)
+(defmethod hugsql-result-fn :default [_] hugsql.adapter/result-raw)
 
 (defn sqlvec-fn*
   "Given parsed sql `psql` and optional `options`, return an
@@ -465,12 +467,14 @@
                      {:command command :result result})
             o (if (seq command-opts)
                 (assoc o :command-options command-opts) o)
-            a (or (:adapter o) (get-adapter))]
+            a (or (:adapter o) (get-adapter))
+            command-fn (hugsql-command-fn command)
+            result-fn (hugsql-result-fn result)]
         (try
           (as-> psql x
             (prepare-sql x param-data o)
-            ((resolve (hugsql-command-fn command)) a db x o)
-            ((resolve (hugsql-result-fn result)) a x o))
+            (command-fn a db x o)
+            (result-fn a x o))
           (catch Exception e
             (adapter/on-exception a e))))))))
 

@@ -4,7 +4,7 @@
   :license {:name "Apache License, Version 2.0"
             :url "http://www.apache.org/licenses/LICENSE-2.0.html"}
   :scm {:dir ".."}
-  :dependencies [[org.clojure/clojure "1.8.0"]
+  :dependencies [[org.clojure/clojure "1.10.1"]
                  [org.clojure/tools.reader "1.3.6"]
                  [org.clojars.xiao-ne-zha/hugsql-adapter "1.0.0-SNAPSHOT"]]
   :profiles {:dev
@@ -20,8 +20,6 @@
                              [com.h2database/h2 "1.4.196"]]
               :global-vars {*warn-on-reflection* false
                             *assert* false}}
-             :1.8 {:dependencies [[org.clojure/clojure "1.8.0"]]}
-             :1.9 {:dependencies [[org.clojure/clojure "1.9.0"]]}
              :1.10 {:dependencies [[org.clojure/clojure "1.10.3"]]}
              :1.11 {:dependencies [[org.clojure/clojure "1.11.0"]]}}
   :aliases {"test-all" ["with-profile" "dev,1.10:dev,1.11" "test"]})
