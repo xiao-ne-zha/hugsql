@@ -244,7 +244,7 @@
 (defmethod hugsql-command-fn :query [_] hugsql.adapter/query)
 (defmethod hugsql-command-fn :default [_] hugsql.adapter/query)
 (defmethod hugsql-command-fn :plan [_] hugsql.adapter/plan)
-(defmethod hugsql-command-fn :~ [_] hugsql.adapter/plan)
+(defmethod hugsql-command-fn :- [_] hugsql.adapter/plan)
 
 (defmulti hugsql-result-fn identity)
 (defmethod hugsql-result-fn :1 [_] hugsql.adapter/result-one)
