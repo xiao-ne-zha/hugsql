@@ -257,7 +257,7 @@
 
    Throws `clojure.lang.ExceptionInfo` on error."
   ([sql] (parse sql {}))
-  ([sql {:keys [no-header file]}]
+  ([sql {:keys [no-header file require-str]}]
    (if (string/blank? sql)
      (throw (ex-info "SQL is empty" {}))
      (let [sql (string/replace sql "\r\n" "\n")
@@ -272,15 +272,17 @@
 
              ;; end of string, so return all, filtering out empty
              (nil? c)
-             (vec
-              (remove #(and (empty? (:hdr %))
-                            (or (empty? (:sql %))
-                                (and
-                                 (every? string? (:sql %))
-                                 (string/blank? (string/join (:sql %))))))
-                      (conj all
-                            {:hdr hdr
-                             :sql (filterv seq (conj sql (string/trimr sb)))})))
+             (->> {:hdr hdr
+                   :sql (filterv seq (conj sql (string/trimr sb)))}
+                  (conj all)
+                  (remove #(and (empty? (:hdr %))
+                                (or (empty? (:sql %))
+                                    (and
+                                     (every? string? (:sql %))
+                                     (string/blank? (string/join (:sql %)))))))
+                  (mapv #(if require-str
+                           (update-in % [:hdr :require] conj require-str)
+                           %)))
 
              ;; SQL comments and hugsql header comments
              (or

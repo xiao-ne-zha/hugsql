@@ -33,23 +33,24 @@
 (defn ^:no-doc parsed-defs-from-string
   "Given a hugsql `sql` string,
    parse it, and return the defs."
-  [sql]
-  (parser/parse sql))
+  ([sql] (parser/parse sql))
+  ([sql options] (parser/parse sql options)))
 
 (defn ^:no-doc parsed-defs-from-file
   "Given a hugsql SQL `file` in the classpath,
    a resource, or a `java.io.File`, parse it, and return the defs."
-  [file]
-  (parser/parse
-   (slurp
-    (condp instance? file
-      java.io.File file ; already file
-      java.net.URL file ; already resource
-      ;; assume resource path (on classpath)
-      (if-let [f (io/resource file)]
-        f
-        (throw (ex-info (str "Can not read file: " file) {})))))
-   {:file (str file)}))
+  ([file] (parsed-defs-from-file file nil))
+  ([file options]
+   (parser/parse
+    (slurp
+     (condp instance? file
+       java.io.File file ; already file
+       java.net.URL file ; already resource
+       ;; assume resource path (on classpath)
+       (if-let [f (io/resource file)]
+         f
+         (throw (ex-info (str "Can not read file: " file) {})))))
+    (merge options {:file (str file)}))))
 
 (defn ^:no-doc validate-parsed-def!
   "Ensure SQL required headers are provided
@@ -365,7 +366,7 @@
    differentiate them from the functions defined by `def-db-fns`."
   ([file] (def-sqlvec-fns file {}))
   ([file options]
-   (doseq [pdef (parsed-defs-from-file file)]
+   (doseq [pdef (parsed-defs-from-file file options)]
      (validate-parsed-def! pdef)
      (compile-exprs pdef)
      (intern-sqlvec-fn pdef options))))
@@ -391,7 +392,7 @@
    differentiate them from the functions defined by `def-db-fns`."
   ([s] (def-sqlvec-fns-from-string s {}))
   ([s options]
-   (doseq [pdef (parsed-defs-from-string s)]
+   (doseq [pdef (parsed-defs-from-string s options)]
      (validate-parsed-def! pdef)
      (compile-exprs pdef)
      (intern-sqlvec-fn pdef options))))
@@ -426,7 +427,7 @@
    differentiate them from the functions defined by `def-db-fns`."
   ([file] (map-of-sqlvec-fns file {}))
   ([file options]
-   (let [pdefs (parsed-defs-from-file file)]
+   (let [pdefs (parsed-defs-from-file file options)]
      (doseq [pdef pdefs]
        (validate-parsed-def! pdef)
        (compile-exprs pdef))
@@ -461,7 +462,7 @@
    differentiate them from the functions defined by `def-db-fns`."
   ([s] (map-of-sqlvec-fns-from-string s {}))
   ([s options]
-   (let [pdefs (parsed-defs-from-string s)]
+   (let [pdefs (parsed-defs-from-string s options)]
      (doseq [pdef pdefs]
        (validate-parsed-def! pdef)
        (compile-exprs pdef))
@@ -586,7 +587,7 @@
    calls (overriding `set-adapter!` and the `:adapter` option here)."
   ([file] (def-db-fns file {}))
   ([file options]
-   (doseq [pdef (parsed-defs-from-file file)]
+   (doseq [pdef (parsed-defs-from-file file options)]
      (validate-parsed-def! pdef)
      (compile-exprs pdef)
      (if (snippet-pdef? pdef)
@@ -610,7 +611,7 @@
    See [[hugsql.core/def-db-fns]] for `:quoting` and `:adapter` details."
   ([s] (def-db-fns-from-string s {}))
   ([s options]
-   (doseq [pdef (parsed-defs-from-string s)]
+   (doseq [pdef (parsed-defs-from-string s options)]
      (validate-parsed-def! pdef)
      (compile-exprs pdef)
      (if (snippet-pdef? pdef)
@@ -644,7 +645,7 @@
    See [[hugsql.core/def-db-fns]] for `:quoting` and `:adapter` details."
   ([file] (map-of-db-fns file {}))
   ([file options]
-   (let [pdefs (parsed-defs-from-file file)]
+   (let [pdefs (parsed-defs-from-file file options)]
      (doseq [pdef pdefs]
        (validate-parsed-def! pdef)
        (compile-exprs pdef))
@@ -680,7 +681,7 @@
    See [[hugsql.core/def-db-fns]] for `:quoting` and `:adapter` details."
   ([s] (map-of-db-fns-from-string s {}))
   ([s options]
-   (let [pdefs (parsed-defs-from-string s)]
+   (let [pdefs (parsed-defs-from-string s options)]
      (doseq [pdef pdefs]
        (validate-parsed-def! pdef)
        (compile-exprs pdef))
