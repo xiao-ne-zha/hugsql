@@ -176,6 +176,22 @@
         :else
         (recur (first pile) (rest pile) (conj rsql curr) expr)))))
 
+(defn- clear-newline [sql-template]
+  (when (seq sql-template)
+    (loop [curr (first sql-template)
+           nxt (second sql-template)
+           pile (nthrest sql-template 2)
+           rsql []]
+      (if-not nxt
+        (conj rsql curr)
+        (recur nxt
+               (first pile)
+               (rest pile)
+               (conj rsql
+                     (if (and (string? curr) (string? nxt) (#{\return \newline} (first nxt)))
+                       (string/trim-newline curr)
+                       curr)))))))
+
 (defn ^:no-doc prepare-sql
   "Takes an `sql-template` (from hugsql parser) and the runtime-provided
   `param-data` and creates a vector of `[\"sql\" val1 val2]` suitable for
@@ -188,13 +204,14 @@
   prepared statement syntax of a `?` to placehold for the value."
   ([sql-template param-data options]
    (let [sql-template (expr-pass sql-template param-data options)
+         sql-template (clear-newline sql-template)
          _ (validate-parameters! sql-template param-data)
          applied (map
                   #(if (string? %)
                      [%]
                      (parameters/apply-hugsql-param % param-data options))
                   sql-template)
-         sql    (string/join "" (map first applied))
+         sql    (string/join (map first applied))
          params (apply concat (filterv seq (map rest applied)))]
      (apply vector (string/trim sql) params))))
 
