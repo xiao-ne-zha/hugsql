@@ -87,12 +87,14 @@
 
 (defn ^:no-doc expr-name
   [expr]
-  (str "expr-" (hash (pr-str expr))))
+  ;;(str "expr-" (hash (pr-str expr)))
+  expr
+  )
 
 (defn ^:no-doc def-expr
   ([expr] (def-expr expr nil))
   ([expr require-str]
-   (let [nam (keyword (expr-name expr))
+   (let [nam (expr-name expr);; (keyword (expr-name expr))
          ;; tag expressions vs others
          ;; and collect interspersed items together into a vector
          tag (reduce
@@ -119,14 +121,29 @@
                          (first (:expr x))
                          (pr-str (:other x)))) tag)))
               "))")]
+     (println "def-expr :" clj)
      (load-string clj))))
 
 (defn ^:no-doc compile-exprs
   "Compile (def) all expressions in a parsed def"
   [pdef]
-  (let [require-str (string/join " " (:require (:hdr pdef)))]
-    (doseq [expr (filter vector? (:sql pdef))]
-      (def-expr expr require-str))))
+  (let [require-str (string/join " " (:require (:hdr pdef)))
+        sql-template (:sql pdef)]
+    #_(doseq [expr (filter vector? (:sql pdef))]
+        (def-expr expr require-str))
+    (loop [curr (first sql-template)
+           pile (rest sql-template)
+           expr []]
+      (when curr
+        (cond
+          (or (vector? curr) (seq expr))
+          (if (and (vector? curr) (= :end (last curr)))
+            (do
+              (def-expr (conj expr curr) require-str)
+              (recur (first pile) (rest pile) []))
+            (recur (first pile) (rest pile) (conj expr curr)))
+          :else
+          (recur (first pile) (rest pile) expr))))))
 
 (defn ^:no-doc run-expr
   "Run expression and return result.
@@ -144,7 +161,9 @@
    {:type :i* :name :cols}
    ```"
   [expr params options]
-  (let [expr-fn #(get @hugsql.expr-run/exprs (keyword (expr-name expr)))]
+  (let [expr-fn #(get @hugsql.expr-run/exprs
+                      ;;(keyword (expr-name expr))
+                      (expr-name expr))]
     (when (nil? (expr-fn)) (def-expr expr))
     (while (nil? (expr-fn)) (Thread/sleep 1))
     (let [result ((expr-fn) params options)]
@@ -152,6 +171,7 @@
         (:sql (first (parser/parse result {:no-header true})))
         result))))
 
+;; 一种更简单的优化时在parse结束时，对多行expr合并成单行expr。
 (defn ^:no-doc expr-pass
   "Takes an `sql-template` (from hugsql parser) and evaluates the
   Clojure expressions resulting in returning an sql template
