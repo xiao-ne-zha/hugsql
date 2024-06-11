@@ -20,6 +20,10 @@
   [^StringBuilder sb ^Character c]
   (doto sb (.append c)))
 
+(defn- last-char [^StringBuilder sb]
+  (when (and sb (> (.length sb) 0))
+    (.charAt sb (dec (.length sb)))))
+
 (defn- whitespace? [^Character c]
   (when c
     (Character/isWhitespace ^Character c)))
@@ -143,9 +147,13 @@
   (let [p (r/peek-char rdr)]
     (and (= \\ c) (or (= \: p) (= \\ p)))))
 
+(defn- variable-char? [c]
+  (boolean (re-matches #"[a-zA-Z0-9_]" (str c))))
+
 (defn- hugsql-param-start?
-  [c]
-  (= \: c))
+  [pre-char c]
+  (or (and (nil? pre-char) (= \: c))
+      (and (= \: c) (not (variable-char? pre-char)))))
 
 (defn- values-vector
   [s]
@@ -332,7 +340,7 @@
              (recur hdr sql (sb-append sb (r/read-char rdr)) all)
 
              ;; hugsql params
-             (hugsql-param-start? c)
+             (hugsql-param-start? (last-char sb) c)
              (recur hdr
                     (vec (filter seq
                                  (conj sql (str sb) (read-hugsql-param rdr))))
