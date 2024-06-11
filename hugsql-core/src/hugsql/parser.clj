@@ -148,7 +148,7 @@
     (and (= \\ c) (or (= \: p) (= \\ p)))))
 
 (defn- variable-char? [c]
-  (boolean (re-matches #"[a-zA-Z0-9_]" (str c))))
+  (boolean (re-matches #"\w" (str c))))
 
 (defn- hugsql-param-start?
   [pre-char c]
